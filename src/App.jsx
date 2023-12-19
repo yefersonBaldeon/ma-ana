@@ -3,10 +3,17 @@ import { UseForm } from "./hooks/useForm";
 import { userReducer } from "./reducers/userReducer";
 import Swal from "sweetalert2";
 import { types } from "./types/types";
+
+import { useForm } from "react-hook-form";
+
 const initialState = {
   users: [],
 };
 function App() {
+
+
+  const { register, handleSubmit} = useForm();
+
   const [formValues, handleInputChange, reset] = UseForm({
     nombres: "",
     email: "",
@@ -15,8 +22,8 @@ function App() {
   const { nombres, email } = formValues;
   const [state, dispatch] = useReducer(userReducer, initialState);
 
-  const onRegisterUser = (e) => {
-    e.preventDefault();
+  const onRegisterUser = () => {
+
     dispatch({
       type: types.addUser,
       payload: formValues,
@@ -61,7 +68,7 @@ function App() {
         <div className="row">
           <div className="col-6">
             <h5>CRUD USUARIOS</h5>
-            <form onSubmit={onRegisterUser}>
+            <form onSubmit={handleSubmit(onRegisterUser)}>
               <div className="form-group">
                 <input
                   placeholder="Nombres"
@@ -70,6 +77,7 @@ function App() {
                   name="nombres"
                   value={nombres}
                   onChange={handleInputChange}
+                  // {...register("nombres", { required: true })}
                 />
               </div>
               <div className="form-group">
@@ -80,6 +88,7 @@ function App() {
                   name="email"
                   value={email}
                   onChange={handleInputChange}
+                  // {...register("email", { required: true })}
                 />
               </div>
               <button type="submit" className="btn btn-dark btn-block">
