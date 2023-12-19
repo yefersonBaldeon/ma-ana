@@ -1,19 +1,15 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import { UseForm } from "./hooks/useForm";
 import { userReducer } from "./reducers/userReducer";
 import Swal from "sweetalert2";
 import { types } from "./types/types";
 
-import { useForm } from "react-hook-form";
+import validator from "validator";
 
 const initialState = {
   users: [],
 };
 function App() {
-
-
-  const { register, handleSubmit} = useForm();
-
   const [formValues, handleInputChange, reset] = UseForm({
     nombres: "",
     email: "",
@@ -22,7 +18,52 @@ function App() {
   const { nombres, email } = formValues;
   const [state, dispatch] = useReducer(userReducer, initialState);
 
-  const onRegisterUser = () => {
+  useEffect(() => {
+    if (localStorage.getItem("users")) {
+      const users = JSON.parse(localStorage.getItem("users"));
+      users.map((user) =>
+        dispatch({
+          type: types.addUser,
+          payload: user,
+        })
+      );
+    }
+  },[]);
+
+  useEffect(() => {
+    const a = [...state.users];
+    localStorage.setItem("users", JSON.stringify(a));
+    reset();
+  }, [state.users]);
+
+  const onRegisterUser = (e) => {
+    e.preventDefault();
+    if (validator.isEmpty(formValues.nombres)) {
+      Swal.fire({
+        icon: "etowrror",
+        title: "Oops...",
+        text: "Ingrese los Nombres",
+      });
+      return;
+    }
+
+    if (validator.isEmpty(formValues.email)) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Ingrese el Correo",
+      });
+      return;
+    }
+
+    if (!validator.isEmail(formValues.email)) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Ingrese un correo valido",
+      });
+      return;
+    }
 
     dispatch({
       type: types.addUser,
@@ -33,7 +74,6 @@ function App() {
       "Se registró al usuario correctamente",
       "success"
     );
-    reset();
   };
 
   const deleteRegisterUser = (id) => {
@@ -57,7 +97,6 @@ function App() {
           type: types.deleUser,
           payload: id,
         });
-
       }
     });
   };
@@ -68,7 +107,7 @@ function App() {
         <div className="row">
           <div className="col-6">
             <h5>CRUD USUARIOS</h5>
-            <form onSubmit={handleSubmit(onRegisterUser)}>
+            <form onSubmit={onRegisterUser}>
               <div className="form-group">
                 <input
                   placeholder="Nombres"
@@ -100,6 +139,7 @@ function App() {
             <table className="table">
               <thead>
                 <tr>
+                  <th scope="col">Id</th>
                   <th scope="col">Nombres</th>
                   <th scope="col">Correo</th>
                   <th scope="col">Acción</th>
@@ -108,6 +148,7 @@ function App() {
               <tbody>
                 {state.users.map((user) => (
                   <tr key={user.id}>
+                    <td>{user.id}</td>
                     <td>{user.nombres}</td>
                     <td>{user.email}</td>
                     <td>
